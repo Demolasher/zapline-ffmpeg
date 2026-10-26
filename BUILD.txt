@@ -1,0 +1,32 @@
+FFmpeg 8.1.3, as built for Zapline by Paper Lantern
+
+This software uses libraries from the FFmpeg project under the LGPLv2.1.
+
+Source: https://ffmpeg.org/releases/ffmpeg-8.1.3.tar.xz
+SHA-256: 7138d28c96d9d3e3af4ee3d8cad72741f8ffb40da90c1112235dea3ecd3178a3
+Changes: none. This tree is that release exactly as published; this file is the only addition.
+
+Configure line, run once per platform and architecture (docs/tools/build_ffmpeg.sh runs it):
+
+  ./configure --prefix=<install folder> --enable-cross-compile \
+      --target-os=darwin --arch=<aarch64 or x86_64> \
+      --cc="$(xcrun -sdk <sdk> -f clang)" --sysroot="$(xcrun -sdk <sdk> --show-sdk-path)" \
+      --extra-cflags="-target <arch>-<target>" \
+      --extra-ldflags="-target <arch>-<target> -Wl,-headerpad_max_install_names" \
+      --install-name-dir=@rpath \
+      --disable-everything --disable-autodetect --disable-programs --disable-doc --disable-network --disable-avformat --disable-avdevice --disable-swscale --enable-decoder=mpeg2video,aac_latm,opus --enable-parser=mpegvideo,aac_latm,opus --enable-filter=bwdif --enable-shared --disable-static --enable-pic --disable-debug
+
+  x86_64 adds --disable-x86asm (those slices only run in simulators and tests).
+
+Platforms (sdk, target, architectures):
+
+  appletvos           -target <arch>-apple-tvos26.0   (arm64)
+  appletvsimulator    -target <arch>-apple-tvos26.0-simulator   (arm64, x86_64)
+  iphoneos            -target <arch>-apple-ios26.0   (arm64)
+  iphonesimulator     -target <arch>-apple-ios26.0-simulator   (arm64, x86_64)
+  macosx              -target <arch>-apple-macos26.0   (arm64, x86_64)
+
+configure reports "License: LGPL version 2.1 or later"; the build script stops if it doesn't.
+
+Libraries: libavutil libswresample libavcodec libavfilter, each a dynamic framework (Zapline.app/Frameworks), so a build of
+your own from this source can replace them (LGPL 2.1, section 6).
