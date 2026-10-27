@@ -1,4 +1,4 @@
-FFmpeg 8.1.3, as built for Zapline by Paper Lantern
+FFmpeg 8.1.3, as built for Zapline by Paper Lantern (build settings, revision 2)
 
 This software uses libraries from the FFmpeg project under the LGPLv2.1.
 
@@ -14,7 +14,7 @@ Configure line, run once per platform and architecture (docs/tools/build_ffmpeg.
       --extra-cflags="-target <arch>-<target>" \
       --extra-ldflags="-target <arch>-<target> -Wl,-headerpad_max_install_names" \
       --install-name-dir=@rpath \
-      --disable-everything --disable-autodetect --disable-programs --disable-doc --disable-network --disable-avformat --disable-avdevice --disable-swscale --enable-decoder=mpeg2video,aac_latm,opus --enable-parser=mpegvideo,aac_latm,opus --enable-filter=bwdif --enable-shared --disable-static --enable-pic --disable-debug
+      --disable-everything --disable-autodetect --disable-programs --disable-doc --disable-network --disable-avformat --disable-avdevice --disable-swscale --enable-decoder=mpeg2video,aac_latm,opus --enable-parser=mpegvideo,aac_latm,opus --enable-filter=bwdif --enable-shared --disable-static --enable-pic --disable-stripping
 
   x86_64 adds --disable-x86asm (those slices only run in simulators and tests).
 
@@ -27,6 +27,9 @@ Platforms (sdk, target, architectures):
   macosx              -target <arch>-apple-macos26.0   (arm64, x86_64)
 
 configure reports "License: LGPL version 2.1 or later"; the build script stops if it doesn't.
+
+--disable-stripping keeps debug symbols until the build script has made each Apple TV and iPhone
+library's dSYM; it then strips the libraries itself (strip -x), so what ships carries no debug data.
 
 Libraries: libavutil libswresample libavcodec libavfilter, each a dynamic framework (Zapline.app/Frameworks), so a build of
 your own from this source can replace them (LGPL 2.1, section 6).

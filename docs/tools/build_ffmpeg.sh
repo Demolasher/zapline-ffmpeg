@@ -9,6 +9,8 @@
 # framework for tvOS and iOS (arm64), their simulators and macOS (arm64 and x86_64: Xcode's generic
 # simulator and Mac builds link both; macOS runs `swift test`). Dynamic, so a viewer can swap in their
 # own build of the same libraries (LGPL 2.1, section 6).
+# The device slices (tvOS, iOS) carry their dSYMs, so an archive has FFmpeg's debug symbols for App Store Connect's
+# crash reports; simulator and Mac slices never reach it, so they go without (about 20 MB less in the repository).
 #
 # No --enable-gpl, --enable-version3 or --enable-nonfree: configure must report "LGPL version 2.1 or
 # later", and the script stops if it doesn't. MPEG-2's last US patent expired on 13 February 2018.
@@ -19,6 +21,9 @@ set -euo pipefail
 
 FFMPEG_VERSION=8.1.3
 FFMPEG_SHA256=7138d28c96d9d3e3af4ee3d8cad72741f8ffb40da90c1112235dea3ecd3178a3
+# Our build settings' revision: raise it whenever CONFIGURE_FLAGS change, so github.com/Demolasher/zapline-ffmpeg
+# gets a new release (docs/tools/package_ffmpeg_source.sh). 1: Zapline 1.0 (3). 2: debug symbols, from 1.0 (4).
+ZAPLINE_REVISION=2
 MIN_OS=26.0
 LIBS=(libavutil libswresample libavcodec libavfilter)
 
@@ -33,7 +38,7 @@ CONFIGURE_FLAGS=(
     --disable-avformat --disable-avdevice --disable-swscale
     --enable-decoder=mpeg2video,aac_latm,opus --enable-parser=mpegvideo,aac_latm,opus
     --enable-filter=bwdif
-    --enable-shared --disable-static --enable-pic --disable-debug
+    --enable-shared --disable-static --enable-pic --disable-stripping
 )
 
 mkdir -p "$WORK"
@@ -155,6 +160,11 @@ for entry in $PLATFORMS; do
                 install_name_tool -change "$dependency" "@rpath/$dependency_lib.framework/$dependency_lib" "$binary"
             fi
         done
+        # Debug symbols before stripping: App Store Connect symbolicates crashes inside FFmpeg from the archive's
+        # dSYMs, which Xcode copies from each xcframework's `-debug-symbols`. Stripping keeps the binary's UUID.
+        dsym=$WORK/dsyms-$name/$lib.framework.dSYM
+        rm -rf "$dsym"
+        [[ $name == tvos || $name == ios ]] && dsymutil "$binary" -o "$dsym"
         strip -x "$binary"
         codesign --force --sign - "$binary" 2> /dev/null
     done
@@ -164,7 +174,11 @@ mkdir -p "$OUT"
 for lib in $LIBS; do
     rm -rf "$OUT/$lib.xcframework"
     slices=()
-    for entry in $PLATFORMS; do slices+=(-framework "$WORK/frameworks-${entry%% *}/$lib.framework"); done
+    for entry in $PLATFORMS; do
+        dsym=$WORK/dsyms-${entry%% *}/$lib.framework.dSYM
+        slices+=(-framework "$WORK/frameworks-${entry%% *}/$lib.framework")
+        [[ -d $dsym ]] && slices+=(-debug-symbols "$dsym")
+    done
     xcodebuild -create-xcframework $slices -output "$OUT/$lib.xcframework" > /dev/null
 done
 

@@ -8,8 +8,8 @@ not to Paper Lantern. This repository holds its source exactly as Zapline ships 
 
 ## What's here
 
-- **The source:** [Releases](https://github.com/Demolasher/zapline-ffmpeg/releases) ›
-  `ffmpeg-8.1.3-zapline.tar.xz`, FFmpeg's own release tarball, unmodified, with `BUILD.txt` added at its root.
+- **The source:** [Releases](https://github.com/Demolasher/zapline-ffmpeg/releases), FFmpeg's own release tarball,
+  unmodified, with `BUILD.txt` added at its root (below: which release matches which Zapline build).
 - **`BUILD.txt`:** the version, the SHA-256 of FFmpeg's tarball, the configure line and the platforms.
 - **`docs/tools/build_ffmpeg.sh`:** the script that builds the libraries.
 - **`LICENSE`:** the GNU Lesser General Public License, version 2.1, as FFmpeg ships it (`COPYING.LGPLv2.1`).
@@ -21,6 +21,14 @@ not to Paper Lantern. This repository holds its source exactly as Zapline ships 
   deinterlacer. No `--enable-gpl`, `--enable-version3` or `--enable-nonfree`: configure reports
   "License: LGPL version 2.1 or later".
 - libavutil libswresample libavcodec libavfilter, as dynamic frameworks for tvOS, iOS, their simulators and macOS.
+
+## Releases
+
+FFmpeg's source is the same in each; only our build settings change, and `BUILD.txt` gives them.
+
+- **v8.1.3-r2**, Zapline 1.0 (4) and later: debug symbols for crash reports (`--disable-stripping` in place of
+  `--disable-debug`); the libraries that ship are still stripped.
+- **v8.1.3**, Zapline 1.0 (3): the first.
 
 ## Rebuild it
 
